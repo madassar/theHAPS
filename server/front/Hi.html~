@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Simple Map</title>
+<meta name="viewport" content="initial-scale=1.0">
+<meta charset="utf-8">
+<style>
+html, body {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+#map {
+	height: 100%;
+}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+var map, lat, long, accuracy, promise
+// Get current location:
+function initMap() {
+	navigator.geolocation.getCurrentPosition(function(position) {
+			lat = position.coords.latitude
+			long = position.coords.longitude
+			rad = position.coords.accuracy
+			var map = new google.maps.Map(document.getElementById('map'), {
+zoom: 4,
+center: {lat: lat, lng: long}
+})
+			promise = window.fetch('http://172.16.99.190/api/points?lon='+long+'&lat='+lat+'&radius='+rad+'&tie=20', {
+method: 'get',
+credentials: 'include',
+headers: new window.Headers({'Content-Type': 'application/json'}),
+}).then(function (res) {
+	return res.json()
+	})
+			// promise = Promise.resolve([{
+			//   location: 'SRT (131.044 -25.363)',
+			//   name: 'Hi!'
+			// }])
+promise.then(function (data) {
+console.log(data)
+		data.map(function (place) {
+			var location = /\(([0-9\-\.]+) ([0-9\-\.]+)\)$/.exec(place.location)
+			var position = {lat: parseFloat(location[2]), lng: parseFloat(location[1])}
+console.log(position)
+			var marker = new google.maps.Marker({
+position: position,
+map: map,
+title: place.name
+})
+			})
+		})
+})
+}
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDPEI8kmAOr08QBm_OdnUqgsAc1HFVYSIY&callback=initMap" async defer></script>
+</body>
+</html>
